@@ -119,6 +119,10 @@ if (-not $Candidates) {
     throw "Inno Setup 6 was not found. Install it or pass -InnoSetup with ISCC.exe path."
 }
 
-$InstallerScript = Join-Path $InstallerRoot "DailyBook.iss"
-Invoke-Checked -File $Candidates[0] -Arguments @($InstallerScript)
+$InstallerScript = Join-Path -Path $InstallerRoot -ChildPath "DailyBook.iss"
+$InnoCompiler = [string]$Candidates[0]
+$InnoProcess = Start-Process -FilePath $InnoCompiler -ArgumentList @("`"$InstallerScript`"") -Wait -PassThru -NoNewWindow
+if ($InnoProcess.ExitCode -ne 0) {
+    throw "Inno Setup compilation failed with exit code $($InnoProcess.ExitCode)."
+}
 Write-Host "Setup created in installer\output\DailyBook-Setup-x64.exe" -ForegroundColor Green
