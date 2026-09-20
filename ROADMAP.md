@@ -44,3 +44,11 @@
 
 - [x] افزودن گزینه «اجرای اتوماتیک بعد از روشن شدن ویندوز» در تنظیمات Admin و اتصال آن به Startup Type سرویس Windows (Automatic/Manual).
 - [x] هماهنگ‌سازی تست گزارش با عنوان جدید ستون «کاربر» در UI بازطراحی‌شده.
+
+
+## GitHub Actions Windows Build — 2026-09-20
+- [x] Workflow `.github/workflows/build-windows.yml` روی Runner نوع `windows-latest` فعال شد.
+- [x] نصب Dependencyها، اجرای کامل تست‌ها، ساخت `DailyBook.exe` و `DailyBookServer.exe` و ساخت Setup فقط در GitHub Actions انجام می‌شود.
+- [x] اجرای تأییدشده #35495484693 با Commit `4732f46e9bee5bf1dc7a7504ec52e841e7b1a447` سبز شد.
+- [x] Artifact نهایی `DailyBook-Setup-x64` با فایل `DailyBook-Setup-x64.exe` ایجاد شد.
+- [ ] تست نصب روی Windows واقعی و تست شبکه LAN همچنان مرحله بعدی است.
