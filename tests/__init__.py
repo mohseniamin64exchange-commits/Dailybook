@@ -1,0 +1,1 @@
+"""DailyBook pytest suite."""

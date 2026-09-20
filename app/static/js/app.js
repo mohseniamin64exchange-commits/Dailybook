@@ -1,0 +1,11 @@
+(function(){'use strict';
+  var faDigits='۰۱۲۳۴۵۶۷۸۹', enDigits='0123456789';
+  function fa(value){return String(value).replace(/[0-9]/g,function(n){return faDigits[n]})}
+  function en(value){return String(value).replace(/[۰-۹]/g,function(n){return enDigits[faDigits.indexOf(n)]})}
+  function formatMoney(value){var raw=en(value).replace(/[^0-9-]/g,'');if(!raw)return '';var negative=raw[0]==='-'?'−':'';raw=raw.replace('-','');return negative+fa(raw.replace(/\B(?=(\d{3})+(?!\d))/g,'٬'))}
+  function showSaved(message){var popup=document.getElementById('saved-popup');if(!popup)return;var t=popup.querySelector('.saved-popup-message');if(t&&message)t.textContent=message;popup.setAttribute('aria-hidden','false');popup.classList.add('is-visible');setTimeout(function(){popup.classList.remove('is-visible');popup.setAttribute('aria-hidden','true')},2600)}
+  function setToday(){var el=document.querySelector('[data-today-jalali]');if(!el||!window.Jalali)return;var d=new Date(),j=Jalali.toJalali(d.getFullYear(),d.getMonth()+1,d.getDate()),days=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'],months=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];el.textContent=days[d.getDay()]+' '+fa(j[2])+' '+months[j[1]-1]+' '+fa(j[0])}
+  function initTheme(){var toggle=document.querySelector('[data-theme-toggle]');if(!toggle)return;toggle.addEventListener('click',function(){var next=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=next;try{localStorage.setItem('dailybook-theme',next)}catch(e){}})}
+  function init(){document.querySelectorAll('[data-money]').forEach(function(input){input.addEventListener('input',function(){var pos=input.selectionStart,old=input.value.length;input.value=formatMoney(input.value);var next=Math.max(0,pos+(input.value.length-old));input.setSelectionRange(next,next)})});document.querySelectorAll('[data-persian-number]').forEach(function(el){el.textContent=fa(el.textContent)});document.querySelectorAll('[data-saved]').forEach(function(form){form.addEventListener('submit',function(){showSaved(form.getAttribute('data-saved')||'اطلاعات با موفقیت ثبت شد')})});setToday();initTheme()}
+  window.DailyBook={fa:fa,en:en,formatMoney:formatMoney,showSaved:showSaved};document.addEventListener('DOMContentLoaded',init);
+})();

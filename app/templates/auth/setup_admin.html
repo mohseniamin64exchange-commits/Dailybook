@@ -1,0 +1,11 @@
+{% extends "auth/_layout.html" %}
+{% block title %}ساخت ادمین اصلی{% endblock %}
+{% block content %}
+<h1>ساخت ادمین اصلی</h1>
+<p class="muted">این صفحه فقط در اولین اجرای برنامه نمایش داده می‌شود.</p>
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+  {% for field in [form.first_name, form.last_name, form.username, form.password, form.confirm_password] %}<label for="{{ field.id }}">{{ field.label.text }}</label>{{ field(autocomplete="new-password" if 'password' in field.id else "off") }}{% for error in field.errors %}<div class="errors">{{ error }}</div>{% endfor %}{% endfor %}
+  {{ form.submit() }}
+</form>
+{% endblock %}

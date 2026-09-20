@@ -1,0 +1,13 @@
+<aside class="admin-sidebar" aria-label="منوی مدیریت">
+  <div class="sidebar-brand"><span class="sidebar-book" aria-hidden="true">▤</span><span>دفتر دیجیتال روزانه</span></div>
+  <nav class="admin-menu-panel">
+    <a class="sidebar-link {% if request.endpoint == 'entries.dashboard' %}is-active{% endif %}" href="{{ url_for('entries.dashboard') }}"><span class="sidebar-icon">⌂</span><span>خانه</span></a>
+    <a class="sidebar-link" href="{{ url_for('entries.dashboard') }}"><span class="sidebar-icon">＋</span><span>ثبت روزانه</span></a>
+    <a class="sidebar-link {% if request.endpoint == 'admin.report' %}is-active{% endif %}" href="{{ url_for('admin.report') }}"><span class="sidebar-icon">▥</span><span>گزارش‌ها</span></a>
+    <a class="sidebar-link {% if request.endpoint == 'admin.users' %}is-active{% endif %}" href="{{ url_for('admin.users') }}"><span class="sidebar-icon">♟</span><span>کاربران</span></a>
+    <a class="sidebar-link {% if request.endpoint == 'admin.backup' %}is-active{% endif %}" href="{{ url_for('admin.backup') }}"><span class="sidebar-icon">◉</span><span>بکاپ و بازیابی</span></a>
+    <a class="sidebar-link {% if request.endpoint == 'admin.logs' %}is-active{% endif %}" href="{{ url_for('admin.logs') }}"><span class="sidebar-icon">▤</span><span>لاگ فعالیت‌ها</span></a>
+    <a class="sidebar-link {% if request.endpoint == 'admin.settings' %}is-active{% endif %}" href="{{ url_for('admin.settings') }}"><span class="sidebar-icon">⚙</span><span>تنظیمات</span></a>
+  </nav>
+  <form class="sidebar-logout" method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit"><span aria-hidden="true">↪</span><span>خروج</span></button></form>
+</aside>

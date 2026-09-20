@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071827">
+  <script>(function(){try{var t=localStorage.getItem('dailybook-theme')||'dark';document.documentElement.dataset.theme=t}catch(e){}})();</script>
+  <title>{% block title %}دفتر دیجیتال روزانه{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% if current_user.is_authenticated and current_user.role == 'admin' and is_server_console %}has-admin-sidebar{% else %}user-shell{% endif %}">
+  <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
+
+  {% if current_user.is_authenticated and current_user.role == 'admin' and is_server_console %}
+    {% include 'admin/_menu.html' %}
+  {% endif %}
+
+  <div class="app-shell">
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="header-profile">
+          {% if current_user.is_authenticated %}
+          <span class="avatar" aria-hidden="true">👤</span>
+          <span class="profile-name">{{ (current_user.first_name ~ ' ' ~ current_user.last_name)|trim }}</span>
+          {% endif %}
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="تغییر حالت روشن و تیره"><span class="theme-icon-dark">☾</span><span class="theme-icon-light">☀</span></button>
+        </div>
+
+        <a class="brand" href="{{ url_for('entries.dashboard') if current_user.is_authenticated else url_for('index') }}" aria-label="صفحه اصلی دفتر دیجیتال روزانه">
+          <span class="brand-mark" aria-hidden="true">▤</span>
+          <span class="brand-copy"><strong>دفتر دیجیتال روزانه</strong><small>سادگی در ثبت، نظم در زندگی</small></span>
+        </a>
+
+        <div class="header-date" aria-label="تاریخ امروز"><span data-today-jalali></span><span class="date-icon" aria-hidden="true">▣</span></div>
+      </div>
+    </header>
+
+    <main id="main-content" class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-stack" aria-live="polite">
+            {% for category, message in messages %}<div class="alert alert-{{ category|e }}" role="alert">{{ message }}</div>{% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <div id="saved-popup" class="saved-popup" role="status" aria-live="polite" aria-hidden="true"><span class="saved-popup-icon" aria-hidden="true">✓</span><span class="saved-popup-message">اطلاعات با موفقیت ثبت شد</span></div>
+    <footer class="site-footer">دفتر دیجیتال روزانه</footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/jalali.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

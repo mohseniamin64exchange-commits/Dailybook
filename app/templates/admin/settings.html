@@ -1,0 +1,17 @@
+{% extends 'admin/base.html' %}{% block content %}
+<section class="admin-page">
+  <div class="page-hero"><div><span class="page-kicker">پیکربندی سیستم</span><h1>تنظیمات</h1><p>تنظیمات سرویس و نحوه دسترسی به دفتر دیجیتال را مدیریت کنید.</p></div><span class="page-hero-icon">⚙</span></div>
+  <section class="card admin-card settings-card">
+    <div class="card-title-row"><div><h2>تنظیمات سرور</h2><p>پورت و نحوه اجرای سرویس DailyBook در ویندوز.</p></div></div>
+    <form method="post" class="stack-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field"><label for="server-port">پورت سرور</label><input id="server-port" name="server_port" inputmode="numeric" min="1024" max="65535" value="{{ server_port }}" required></div>
+      <div class="info-box">پورت پیش‌فرض <strong>۴۰۰۰</strong> است. در نسخه نصب‌شده، سرویس پس از تغییر پورت خودکار راه‌اندازی مجدد می‌شود.</div>
+      {% if environment_override %}<p class="alert alert-error">متغیر DAILYBOOK_PORT فعال است و تا زمان حذف آن، مقدار این صفحه را نادیده می‌گیرد.</p>{% endif %}
+      <label class="toggle-row" for="windows-autostart"><span><strong>اجرای اتوماتیک بعد از روشن شدن ویندوز</strong><small>با فعال بودن این گزینه، سرویس DailyBook بعد از روشن یا ری‌استارت شدن ویندوز خودکار اجرا می‌شود و نیازی به باز کردن دستی برنامه نیست.</small></span><input id="windows-autostart" type="checkbox" name="windows_autostart_enabled" {% if windows_autostart_enabled %}checked{% endif %}></label>
+      <div class="info-box">اگر این گزینه را غیرفعال کنید، بعد از ری‌استارت ویندوز باید سرویس DailyBook را به‌صورت دستی اجرا کنید.</div>
+      <button class="btn gold-btn wide-btn" type="submit">ذخیره تنظیمات</button>
+    </form>
+  </section>
+</section>
+{% endblock %}
