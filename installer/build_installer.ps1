@@ -119,5 +119,6 @@ if (-not $Candidates) {
     throw "Inno Setup 6 was not found. Install it or pass -InnoSetup with ISCC.exe path."
 }
 
-Invoke-Checked $Candidates[0] @(Join-Path $InstallerRoot "DailyBook.iss")
+$InstallerScript = Join-Path $InstallerRoot "DailyBook.iss"
+Invoke-Checked -File $Candidates[0] -Arguments @($InstallerScript)
 Write-Host "Setup created in installer\output\DailyBook-Setup-x64.exe" -ForegroundColor Green
