@@ -120,7 +120,7 @@ if (-not $Candidates) {
 }
 
 $InstallerScript = Join-Path -Path $InstallerRoot -ChildPath "DailyBook.iss"
-$InnoCompiler = [string]$Candidates[0]
+$InnoCompiler = [string]($Candidates | Select-Object -First 1)
 $InnoProcess = Start-Process -FilePath $InnoCompiler -ArgumentList @("`"$InstallerScript`"") -Wait -PassThru -NoNewWindow
 if ($InnoProcess.ExitCode -ne 0) {
     throw "Inno Setup compilation failed with exit code $($InnoProcess.ExitCode)."
