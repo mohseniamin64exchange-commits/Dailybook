@@ -38,13 +38,25 @@ jobs:
         shell: pwsh
         run: choco install innosetup --yes --no-progress
 
+      - name: Package DailyBook server
+        shell: pwsh
+        run: .\installer\build_installer.ps1 -Clean -UseCurrentPython -SkipTests -Stage Server
+
+      - name: Package DailyBook launcher
+        shell: pwsh
+        run: .\installer\build_installer.ps1 -UseCurrentPython -SkipTests -Stage Launcher
+
+      - name: Prepare Windows service
+        shell: pwsh
+        run: .\installer\build_installer.ps1 -UseCurrentPython -SkipTests -Stage Service
+
       - name: Build installer on GitHub Actions
         shell: pwsh
         run: |
           $inno = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $inno)) { $inno = "C:\Program Files\Inno Setup 6\ISCC.exe" }
           if (-not (Test-Path $inno)) { throw "Inno Setup was not found." }
-          .\installer\build_installer.ps1 -Clean -InnoSetup $inno
+          .\installer\build_installer.ps1 -UseCurrentPython -SkipTests -Stage Installer -InnoSetup $inno
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4

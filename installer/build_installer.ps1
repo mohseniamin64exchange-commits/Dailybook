@@ -1,7 +1,11 @@
 [CmdletBinding()]
 param(
     [switch]$Clean,
-    [string]$InnoSetup = ""
+    [string]$InnoSetup = "",
+    [switch]$UseCurrentPython,
+    [switch]$SkipTests,
+    [ValidateSet("All", "Server", "Launcher", "Service", "Installer")]
+    [string]$Stage = "All"
 )
 
 $ErrorActionPreference = "Stop"
@@ -25,7 +29,10 @@ if ($Clean) {
     }
 }
 
-if (-not (Test-Path (Join-Path $Venv "Scripts\python.exe"))) {
+if ($UseCurrentPython) {
+    $PythonCommand = Get-Command "python.exe" -ErrorAction Stop
+    $Python = $PythonCommand.Source
+} elseif (-not (Test-Path (Join-Path $Venv "Scripts\python.exe"))) {
     # Prefer the regular `python` command so modern installs (for example 3.14)
     # work even when the Python Launcher has no `-3.11` runtime registered.
     $PythonCommand = Get-Command "python.exe" -ErrorAction SilentlyContinue
@@ -54,15 +61,20 @@ if (-not (Test-Path (Join-Path $Venv "Scripts\python.exe"))) {
     Invoke-Checked $BasePython ($BaseArgs + @("-m", "venv", $Venv))
 }
 
-$Python = Join-Path $Venv "Scripts\python.exe"
-Invoke-Checked $Python @("-m", "pip", "install", "--upgrade", "pip")
-Invoke-Checked $Python @("-m", "pip", "install", "-r", (Join-Path $ProjectRoot "windows\requirements-build.txt"))
-Invoke-Checked $Python @("-m", "pytest", "-q", $ProjectRoot)
+if (-not $UseCurrentPython) {
+    $Python = Join-Path $Venv "Scripts\python.exe"
+    Invoke-Checked $Python @("-m", "pip", "install", "--upgrade", "pip")
+    Invoke-Checked $Python @("-m", "pip", "install", "-r", (Join-Path $ProjectRoot "windows\requirements-build.txt"))
+}
+if (-not $SkipTests -and $Stage -eq "All") {
+    Invoke-Checked $Python @("-m", "pytest", "-q", $ProjectRoot)
+}
 
 $ServerDist = Join-Path $DistRoot "server"
 $LauncherDist = Join-Path $DistRoot "launcher"
 New-Item -ItemType Directory -Force -Path $BuildRoot, $ServerDist, $LauncherDist | Out-Null
 
+if ($Stage -in @("All", "Server")) {
 $ServerArgs = @(
     "-m", "PyInstaller", "--noconfirm", "--clean", "--onedir", "--windowed",
     "--name", "DailyBookServer", "--paths", $ProjectRoot,
@@ -73,7 +85,9 @@ $ServerArgs = @(
     (Join-Path $ProjectRoot "run.py")
 )
 Invoke-Checked $Python $ServerArgs
+}
 
+if ($Stage -in @("All", "Launcher")) {
 $LauncherArgs = @(
     "-m", "PyInstaller", "--noconfirm", "--clean", "--onefile", "--windowed",
     "--name", "DailyBook", "--distpath", $LauncherDist,
@@ -81,7 +95,9 @@ $LauncherArgs = @(
     (Join-Path $ProjectRoot "windows\launcher.py")
 )
 Invoke-Checked $Python $LauncherArgs
+}
 
+if ($Stage -in @("All", "Service")) {
 New-Item -ItemType Directory -Force -Path $ServiceDir | Out-Null
 $WinSw = Join-Path $ServiceDir "DailyBookService.exe"
 if (-not (Test-Path $WinSw)) {
@@ -110,6 +126,8 @@ if (-not (Test-Path $WinSw)) {
 </service>
 '@ | Set-Content -Encoding UTF8 (Join-Path $ServiceDir "DailyBookService.xml")
 
+}
+if ($Stage -in @("All", "Installer")) {
 $Candidates = @(
     $InnoSetup,
     "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
@@ -121,3 +139,4 @@ if (-not $Candidates) {
 
 Invoke-Checked $Candidates[0] @(Join-Path $InstallerRoot "DailyBook.iss")
 Write-Host "Setup created in installer\output\DailyBook-Setup-x64.exe" -ForegroundColor Green
+}
