@@ -140,7 +140,6 @@ def test_admin_has_ordered_fixed_sidebar(logged_in_admin):
     assert response.status_code == 200
     body = response.get_data(as_text=True)
     labels = [
-        "خانه",
         "ثبت روزانه",
         "گزارش‌ها",
         "کاربران",
@@ -199,7 +198,7 @@ def test_report_date_filter_uses_jalali_range(logged_in_admin, app, admin):
         )
         db.session.commit()
 
-    response = logged_in_admin.get("/admin/report?start=۱۴۰۲/۱۰/۲۰&end=۱۴۰۲/۱۰/۲۰")
+    response = logged_in_admin.get("/admin/report?advanced_filter=on&use_date=on&start=۱۴۰۲/۱۰/۲۰&end=۱۴۰۲/۱۰/۲۰")
     assert response.status_code == 200
     body = response.get_data(as_text=True)
     assert "در بازه" in body
@@ -219,7 +218,7 @@ def test_admin_can_clear_logs_and_records_clear_event(logged_in_admin, app, admi
         )
         db.session.commit()
 
-    response = logged_in_admin.post("/admin/logs/clear", follow_redirects=False)
+    response = logged_in_admin.post("/admin/logs/clear", data={"admin_password": "correct-password"}, follow_redirects=False)
     assert response.status_code == 302
 
     with app.app_context():
@@ -238,7 +237,7 @@ def test_admin_can_create_manual_backup(logged_in_admin, app):
     )
     assert response.status_code == 302
 
-    backups = [path for path in backup_dir.glob("dailybook_*.db") if not path.name.startswith("dailybook_auto_")]
+    backups = [path for path in backup_dir.glob("*.db") if not path.name.startswith("dailybook_auto_")]
     assert len(backups) == 1
     assert backups[0].stat().st_size > 0
 

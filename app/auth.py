@@ -44,7 +44,8 @@ class LoginForm(FlaskForm):
 
 
 def _admin_recovery_path():
-    return Path(current_app.config["DATA_DIR"]) / ADMIN_RECOVERY_FILE
+    data_dir = current_app.config.get("DATA_DIR") or current_app.instance_path
+    return Path(data_dir) / ADMIN_RECOVERY_FILE
 
 
 def _is_local_request():

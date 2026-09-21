@@ -104,7 +104,7 @@ def test_settings_page_has_windows_autostart_toggle(logged_in_admin):
     assert response.status_code == 200
     body = response.get_data(as_text=True)
     assert "windows_autostart_enabled" in body
-    assert "اجرای اتوماتیک بعد از روشن شدن ویندوز" in body
+    assert "اجرای خودکار با روشن شدن ویندوز" in body
 
 
 def test_admin_can_disable_windows_autostart(app, logged_in_admin):
