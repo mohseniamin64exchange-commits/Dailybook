@@ -10,6 +10,7 @@ AppId={{8E2D8B57-3AA9-4A6B-9D0D-4A1B7C0D4000}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
+SetupIconFile=assets\DailyBook.ico
 DefaultDirName={autopf}\DailyBook
 DefaultGroupName=DailyBook
 ArchitecturesAllowed=x64compatible
@@ -41,9 +42,9 @@ Name: "{commonappdata}\DailyBook\logs"
 Name: "desktopicon"; Description: "ایجاد میانبر روی دسکتاپ"; GroupDescription: "میانبرها:"
 
 [Icons]
-Name: "{group}\DailyBook"; Filename: "{app}\DailyBook.exe"
+Name: "{group}\DailyBook"; Filename: "{app}\DailyBook.exe"; IconFilename: "{app}\DailyBook.exe"
 Name: "{group}\حذف DailyBook"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\DailyBook"; Filename: "{app}\DailyBook.exe"; Tasks: desktopicon
+Name: "{commondesktop}\DailyBook"; Filename: "{app}\DailyBook.exe"; IconFilename: "{app}\DailyBook.exe"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\service\DailyBookService.exe"; Parameters: "install"; Flags: runhidden waituntilterminated; Check: not ServiceExists
@@ -109,4 +110,5 @@ begin
       DelTree(ExpandConstant('{commonappdata}\DailyBook'), True, True, True);
   end;
 end;
+
 

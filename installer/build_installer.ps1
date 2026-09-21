@@ -15,6 +15,7 @@ $BuildRoot = Join-Path $InstallerRoot "build"
 $DistRoot = Join-Path $InstallerRoot "dist"
 $ServiceDir = Join-Path $InstallerRoot "service"
 $Venv = Join-Path $InstallerRoot ".venv-build"
+$IconFile = Join-Path $InstallerRoot "assets\DailyBook.ico"
 
 function Invoke-Checked([string]$File, [string[]]$Arguments) {
     $PreviousErrorAction = $ErrorActionPreference
@@ -82,10 +83,12 @@ $ServerDist = Join-Path $DistRoot "server"
 $LauncherDist = Join-Path $DistRoot "launcher"
 New-Item -ItemType Directory -Force -Path $BuildRoot, $ServerDist, $LauncherDist | Out-Null
 
+if (-not (Test-Path $IconFile)) { throw "Application icon was not found: $IconFile" }
+
 if ($Stage -in @("All", "Server")) {
 $ServerArgs = @(
     "-m", "PyInstaller", "--noconfirm", "--clean", "--onedir", "--windowed",
-    "--name", "DailyBookServer", "--paths", $ProjectRoot,
+    "--name", "DailyBookServer", "--icon", $IconFile, "--paths", $ProjectRoot,
     "--distpath", $ServerDist, "--workpath", (Join-Path $BuildRoot "server"),
     "--specpath", $BuildRoot,
     "--add-data", "$(Join-Path $ProjectRoot 'app\templates');app\templates",
@@ -98,7 +101,7 @@ Invoke-Checked $Python $ServerArgs
 if ($Stage -in @("All", "Launcher")) {
 $LauncherArgs = @(
     "-m", "PyInstaller", "--noconfirm", "--clean", "--onefile", "--windowed",
-    "--name", "DailyBook", "--distpath", $LauncherDist,
+    "--name", "DailyBook", "--icon", $IconFile, "--distpath", $LauncherDist,
     "--workpath", (Join-Path $BuildRoot "launcher"), "--specpath", $BuildRoot,
     (Join-Path $ProjectRoot "windows\launcher.py")
 )
@@ -150,6 +153,7 @@ if (-not $Candidates) {
 Invoke-Checked $Candidates[0] @(Join-Path $InstallerRoot "DailyBook.iss")
 Write-Host "Setup created in installer\output\DailyBook-Setup-x64.exe" -ForegroundColor Green
 }
+
 
 
 
