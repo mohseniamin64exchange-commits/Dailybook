@@ -58,6 +58,16 @@ jobs:
           if (-not (Test-Path $inno)) { throw "Inno Setup was not found." }
           .\installer\build_installer.ps1 -UseCurrentPython -SkipTests -Stage Installer -InnoSetup $inno
 
+      - name: Publish installer error
+        if: steps.build_installer.outcome == 'failure'
+        shell: pwsh
+        run: |
+          $details = Get-Content .\installer\build-error.txt -Raw
+          Add-Content $env:GITHUB_STEP_SUMMARY "## Installer build error"
+          Add-Content $env:GITHUB_STEP_SUMMARY $details
+          Write-Output "::error title=Installer build error::$details"
+          exit 1
+
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
@@ -65,3 +75,4 @@ jobs:
           path: installer/output/DailyBook-Setup-x64.exe
           if-no-files-found: error
           retention-days: 14
+

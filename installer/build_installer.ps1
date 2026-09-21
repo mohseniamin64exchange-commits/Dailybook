@@ -26,6 +26,7 @@ function Invoke-Checked([string]$File, [string[]]$Arguments) {
     if ($ExitCode -ne 0) {
         $Details = (($CommandOutput | Select-Object -Last 20) -join ' | ').Replace("`r", ' ').Replace("`n", ' ')
         Write-Host "::error title=Build command failed::$Details"
+        Set-Content -Path (Join-Path $InstallerRoot "build-error.txt") -Value $Details -Encoding UTF8
         throw "Command failed ($ExitCode): $File $($Arguments -join ' ')"
     }
 }
@@ -147,4 +148,5 @@ if (-not $Candidates) {
 Invoke-Checked $Candidates[0] @(Join-Path $InstallerRoot "DailyBook.iss")
 Write-Host "Setup created in installer\output\DailyBook-Setup-x64.exe" -ForegroundColor Green
 }
+
 
