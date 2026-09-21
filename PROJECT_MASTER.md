@@ -851,12 +851,3 @@ Log باید تا حد ممکن کامل باشد.
 - تم Dark/Light و Design System میان Admin و User مشترک است.
 
 - [x] نمایش عنوان رویدادهای Audit Log در رابط مدیر به فارسی انجام شد؛ مقدار استاندارد انگلیسی در دیتابیس بدون تغییر باقی می‌ماند.
-
-
-## GitHub Actions Build Verification — 2026-09-20
-- Workflow نهایی: `.github/workflows/build-windows.yml` با Runner `windows-latest`.
-- Run تأییدشده: #35495484693 — نتیجه: success.
-- Commit تأییدشده: `4732f46e9bee5bf1dc7a7504ec52e841e7b1a447`.
-- تست‌ها، ساخت هر دو EXE، ساخت Inno Setup و Verify خروجی همگی موفق شدند.
-- Artifact: `DailyBook-Setup-x64`؛ فایل نهایی: `DailyBook-Setup-x64.exe`؛ وضعیت Artifact: موجود و قابل دانلود از صفحه Actions.
-- Build محلی برای این فرایند انجام نمی‌شود و ابزار Build جدیدی روی کامپیوتر توسعه‌دهنده نصب نشده است.

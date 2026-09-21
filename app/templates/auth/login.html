@@ -7,5 +7,6 @@
   <label for="username">{{ form.username.label.text }}</label>{{ form.username(id="username", autocomplete="username") }}{% for error in form.username.errors %}<div class="errors">{{ error }}</div>{% endfor %}
   <label for="password">{{ form.password.label.text }}</label>{{ form.password(id="password", autocomplete="current-password") }}{% for error in form.password.errors %}<div class="errors">{{ error }}</div>{% endfor %}
   {{ form.submit() }}
+  {% if recovery_available %}<a class="forgot-password-link" href="{{ url_for("auth.recover_admin") }}">فراموشی رمز عبور</a>{% endif %}
 </form>
 {% endblock %}

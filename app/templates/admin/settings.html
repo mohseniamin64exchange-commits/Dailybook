@@ -1,17 +1,42 @@
 {% extends 'admin/base.html' %}{% block content %}
-<section class="admin-page">
-  <div class="page-hero"><div><span class="page-kicker">پیکربندی سیستم</span><h1>تنظیمات</h1><p>تنظیمات سرویس و نحوه دسترسی به دفتر دیجیتال را مدیریت کنید.</p></div><span class="page-hero-icon">⚙</span></div>
-  <section class="card admin-card settings-card">
-    <div class="card-title-row"><div><h2>تنظیمات سرور</h2><p>پورت و نحوه اجرای سرویس DailyBook در ویندوز.</p></div></div>
-    <form method="post" class="stack-form">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="field"><label for="server-port">پورت سرور</label><input id="server-port" name="server_port" inputmode="numeric" min="1024" max="65535" value="{{ server_port }}" required></div>
-      <div class="info-box">پورت پیش‌فرض <strong>۴۰۰۰</strong> است. در نسخه نصب‌شده، سرویس پس از تغییر پورت خودکار راه‌اندازی مجدد می‌شود.</div>
-      {% if environment_override %}<p class="alert alert-error">متغیر DAILYBOOK_PORT فعال است و تا زمان حذف آن، مقدار این صفحه را نادیده می‌گیرد.</p>{% endif %}
-      <label class="toggle-row" for="windows-autostart"><span><strong>اجرای اتوماتیک بعد از روشن شدن ویندوز</strong><small>با فعال بودن این گزینه، سرویس DailyBook بعد از روشن یا ری‌استارت شدن ویندوز خودکار اجرا می‌شود و نیازی به باز کردن دستی برنامه نیست.</small></span><input id="windows-autostart" type="checkbox" name="windows_autostart_enabled" {% if windows_autostart_enabled %}checked{% endif %}></label>
-      <div class="info-box">اگر این گزینه را غیرفعال کنید، بعد از ری‌استارت ویندوز باید سرویس DailyBook را به‌صورت دستی اجرا کنید.</div>
-      <button class="btn gold-btn wide-btn" type="submit">ذخیره تنظیمات</button>
-    </form>
-  </section>
+<section class="admin-page settings-page">
+  <form method="post" enctype="multipart/form-data" class="settings-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="settings-grid">
+      <section class="card admin-card settings-section settings-server-section">
+        <div class="settings-section-heading"><span class="settings-section-icon">⌁</span><div><h2>سرور و دسترسی</h2><p>نحوه اجرای DailyBook و پورت دسترسی را تنظیم کنید.</p></div></div>
+        <div class="settings-fields settings-server-fields">
+          <div class="field"><label for="server-port">پورت سرور</label><input id="server-port" name="server_port" inputmode="numeric" min="1024" max="65535" value="{{ server_port }}" required></div>
+        </div>
+        {% if environment_override %}<div class="alert alert-error settings-alert">متغیر DAILYBOOK_PORT فعال است و تا زمان حذف آن، مقدار این صفحه نادیده گرفته می‌شود.</div>{% endif %}
+        <label class="toggle-row settings-toggle" for="windows-autostart"><span><strong>اجرای خودکار با روشن شدن ویندوز</strong><small>DailyBook بعد از روشن یا ری‌استارت شدن ویندوز بدون اجرای دستی شروع می‌شود.</small></span><input id="windows-autostart" type="checkbox" name="windows_autostart_enabled" {% if windows_autostart_enabled %}checked{% endif %}></label>
+      </section>
+
+      <section class="card admin-card settings-section settings-print-section">
+        <div class="settings-section-heading"><span class="settings-section-icon">▤</span><div><h2>چاپ و خروجی</h2><p>ابعاد و جهت برگه گزارش‌ها و لاگ‌ها را مشخص کنید.</p></div></div>
+        <div class="settings-fields settings-print-fields">
+          <div class="field"><label for="print-paper-size">اندازه کاغذ</label><select id="print-paper-size" name="print_paper_size"><option value="A4" {% if print_paper_size == "A4" %}selected{% endif %}>A4</option><option value="A5" {% if print_paper_size == "A5" %}selected{% endif %}>A5</option></select></div>
+          <div class="field"><label for="print-orientation">جهت صفحه</label><select id="print-orientation" name="print_orientation"><option value="landscape" {% if print_orientation == "landscape" %}selected{% endif %}>افقی</option><option value="portrait" {% if print_orientation == "portrait" %}selected{% endif %}>عمودی</option></select></div>
+        </div>
+        <div class="settings-help"><span>i</span><p>با انتخاب «چاپ / PDF»، پنجره چاپ ویندوز باز می‌شود و می‌توانید پرینتر واقعی یا Save as PDF را انتخاب کنید. خروجی Excel از بخش گزارش‌ها و لاگ‌ها دریافت می‌شود.</p></div>
+      </section>
+    </div>
+
+    <section class="card admin-card brand-logo-card">
+      <header class="brand-logo-header">
+
+        <h2>لوگوی مجموعه</h2>
+        <p>تصویر انتخابی در سربرگ و منوی کناری نمایش داده می‌شود.</p>
+      </header>
+      <div class="brand-logo-dropzone" aria-label="پیش‌نمایش لوگو">
+        <span class="brand-logo-preview" aria-hidden="true">{% if logo_filename %}<img src="{{ url_for('admin.app_logo') }}" alt="">{% endif %}</span>
+      </div>
+      <div class="brand-logo-actions">
+        <label class="btn brand-logo-pick" for="logo-file"><span class="brand-logo-folder" aria-hidden="true">▰</span><span>انتخاب لوگو</span><input id="logo-file" type="file" name="logo_file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" aria-label="انتخاب فایل لوگو"><span id="brand-logo-file-name" class="brand-logo-file-name" aria-hidden="true"></span></label>
+        <button class="btn gold-btn brand-logo-save" type="submit">ثبت لوگو</button>
+        <button class="btn brand-logo-remove" type="submit" name="delete_logo" value="1">حذف لوگو</button>
+      </div>
+    </section>    <div class="settings-actions"><div><strong>ذخیره تغییرات</strong><span>تنظیمات جدید پس از ذخیره در برنامه اعمال می‌شوند.</span></div><button class="btn gold-btn settings-save-btn" type="submit">ذخیره تنظیمات</button></div>
+  </form>
 </section>
-{% endblock %}
+<script>document.addEventListener("DOMContentLoaded",function(){var input=document.getElementById("logo-file"),name=document.getElementById("brand-logo-file-name"),preview=document.querySelector(".brand-logo-preview");if(!input)return;input.addEventListener("change",function(){var file=input.files&&input.files[0];if(!file)return;if(name)name.textContent=file.name;if(preview&&file.type.indexOf("image/")===0){var reader=new FileReader();reader.onload=function(event){preview.innerHTML="<img src=\""+event.target.result+"\" alt=\"پیش‌نمایش لوگوی انتخاب‌شده\">"};reader.readAsDataURL(file)}})})</script>{% endblock %}

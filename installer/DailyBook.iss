@@ -69,7 +69,7 @@ begin
   Result := ExecHidden(ExpandConstant('{sys}\sc.exe'), 'query "{#ServiceName}"') = 0;
 end;
 
-function PrepareToInstall(var NeedsRestart: Boolean): String;
+function PrepareToInstall(var NeedsRestart: String): String;
 var
   ExistingService: String;
 begin
@@ -109,5 +109,3 @@ begin
       DelTree(ExpandConstant('{commonappdata}\DailyBook'), True, True, True);
   end;
 end;
-
-

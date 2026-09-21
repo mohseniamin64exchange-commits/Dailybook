@@ -8,18 +8,20 @@ dist/
 build/
 *.spec
 
-.env
-.env.*
-venv/
-*.db
-*.sqlite
-*.sqlite3
-*.log
-*.bak
-*.backup
-*token*
-*credential*
-*private*key*
-*.pem
+
+# Local data and build artifacts
+data-preview/
+installer/.venv-build/
+installer/build/
+installer/dist/
+installer/service/
+installer/output/
+preview*.log*.db
+*.db-wal
+*.db-shm
 *.key
+
+preview*.err.log
+preview*.out.log
+preview*.log
 

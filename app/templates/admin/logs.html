@@ -1,36 +1,78 @@
-{% extends 'admin/base.html' %}{% block content %}<section class="admin-page"><div class="page-hero"><div><span class="page-kicker">ردیابی فعالیت‌ها</span><h1>لاگ فعالیت‌ها</h1><p>رویدادهای مهم سیستم و فعالیت کاربران را به‌صورت ساده و فارسی مرور کنید.</p></div><span class="page-hero-icon">▤</span></div><section class="card admin-card"><div class="card-title-row"><div><h2>فیلتر لاگ‌ها</h2><p>نتایج را بر اساس رویداد، کاربر یا تاریخ محدود کنید.</p></div></div><form method="get"><input name="event" placeholder="نوع رویداد"><input name="user_id" inputmode="numeric" placeholder="شناسه کاربر"><input name="start" placeholder="از تاریخ شمسی"><input name="end" placeholder="تا تاریخ شمسی"><button class="btn">فیلتر</button></form><form class="danger-action" method="post" action="{{ url_for('admin.clear_logs') }}" onsubmit="return confirm('همه لاگ‌ها پاک شوند؟')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn">پاک‌سازی لاگ</button></form></section><section class="card admin-card"><div class="card-title-row"><div><h2>رویدادهای ثبت‌شده</h2><p>جزئیات فنی برای خوانایی بیشتر ساده‌سازی شده‌اند.</p></div></div><div class="table-wrap"><table class="table"><tr><th>زمان</th><th>رویداد</th><th>کاربر</th><th>مورد مرتبط</th><th>نتیجه</th><th>جزئیات</th></tr>{% for log in logs %}<tr><td data-persian-number>{{ log.created_at }}</td><td>{{ {
-'admin_setup':'ایجاد مدیر اصلی',
-'login_success':'ورود کاربر',
-'login_failed':'ورود ناموفق',
-'login_failed_inactive':'ورود ناموفق - حساب غیرفعال',
-'login_failed_locked':'ورود ناموفق - حساب قفل‌شده',
-'account_locked':'قفل شدن حساب کاربر',
-'logout':'خروج کاربر',
-'create_entry':'ثبت تراکنش',
-'update_entry':'ویرایش تراکنش',
-'entry_date_changed':'تغییر تاریخ تراکنش',
-'entry_type_changed':'تغییر نوع تراکنش',
-'entry_description_changed':'تغییر شرح تراکنش',
-'entry_amount_changed':'تغییر مبلغ تراکنش',
-'soft_delete_entry':'حذف تراکنش',
-'user_created':'ایجاد کاربر',
-'user_edit':'ویرایش کاربر',
-'user_activate':'فعال‌سازی کاربر',
-'user_deactivate':'غیرفعال‌سازی کاربر',
-'user_unlock':'بازکردن قفل کاربر',
-'user_reset_password':'بازنشانی رمز عبور کاربر',
-'user_delete':'حذف کاربر',
-'logs_cleared':'پاک‌سازی لاگ‌ها',
-'backup_settings_changed':'تغییر تنظیمات پشتیبان‌گیری',
-'backup_manual':'پشتیبان‌گیری دستی',
-'backup_fallback':'پشتیبان‌گیری در مسیر جایگزین',
-'backup_failed':'خطا در پشتیبان‌گیری',
-'backup_auto':'پشتیبان‌گیری خودکار',
-'backup_auto_fallback':'پشتیبان‌گیری خودکار در مسیر جایگزین',
-'backup_auto_failed':'خطا در پشتیبان‌گیری خودکار',
-'server_port_changed':'تغییر پورت سرور',
-'server_settings_changed':'تغییر تنظیمات سرور',
-'server_settings_change_failed':'خطا در تغییر تنظیمات سرور',
-'server_port_change_failed':'خطا در تغییر پورت سرور'
-}.get(log.event_type, log.event_type) }}</td><td>{{ log.actor_username_snapshot or '' }}</td><td data-persian-number>{{ related_record_fa(log) }}</td><td>{{ 'موفق' if log.success else 'ناموفق' }}</td><td class="audit-details" data-persian-number>{{ audit_details_fa(log) }}</td></tr>{% endfor %}</table></div></section></section>{% endblock %}
-
+{% extends "admin/base.html" %}{% block content %}
+<section class="admin-page logs-page">
+<section class="card admin-card report-filter-card"><div class="card-title-row report-filter-heading"><div><h2>فیلتر و چاپ لاگ</h2><p>بازه زمانی و مشخصات لاگ را انتخاب کنید.</p></div></div><form method="get" class="admin-filter-grid report-filter-form">
+  <div class="advanced-filter-toggle"><input id="advanced-filter" name="advanced_filter" type="checkbox" {% if advanced_filter %}checked{% endif %}><label for="advanced-filter">فعال‌سازی فیلتر پیشرفته</label></div>
+  <div class="advanced-filter-panel {% if not advanced_filter %}is-disabled{% endif %}" id="advanced-filter-panel">
+    <section class="filter-section"><div class="filter-section-toggle"><input class="filter-enable" id="use-date" name="use_date" type="checkbox" {% if use_date %}checked{% endif %}><label for="use-date">فیلتر تاریخ</label></div><div class="filter-section-body"><div class="field report-date-field"><label for="start">از تاریخ شمسی</label><div class="report-date-input-wrap"><input id="start" name="start" inputmode="numeric" placeholder="۱۴۰۵/۰۱/۰۱" value="{{ start or '' }}"><button class="calendar-button report-calendar-button" id="start-calendar-open" type="button" aria-label="انتخاب تاریخ شروع از تقویم شمسی">🗓</button></div></div>
+    <div class="field report-date-field"><label for="end">تا تاریخ شمسی</label><div class="report-date-input-wrap"><input id="end" name="end" inputmode="numeric" placeholder="۱۴۰۵/۱۲/۲۹" value="{{ end or '' }}"><button class="calendar-button report-calendar-button" id="end-calendar-open" type="button" aria-label="انتخاب تاریخ پایان از تقویم شمسی">🗓</button></div></div></div></section>
+    <section class="filter-section"><div class="filter-section-toggle"><input class="filter-enable" id="use-time" name="use_time" type="checkbox" {% if use_time %}checked{% endif %}><label for="use-time">فیلتر ساعت</label></div><div class="field"><input id="time-filter" name="time_filter" type="time" value="{{ time_filter or '' }}"></div></section>
+    <section class="filter-section"><div class="filter-section-toggle"><input class="filter-enable" id="use-user" name="use_user" type="checkbox" {% if use_user %}checked{% endif %}><label for="use-user">فیلتر کاربر</label></div><div class="field"><select id="user-filter" name="user_filter"><option value="">همه کاربران</option>{% for user in users %}<option value="{{ user.id }}" {% if (user_filter|string) == (user.id|string) %}selected{% endif %}>{{ user.first_name }} {{ user.last_name }} ({{ user.username }})</option>{% endfor %}</select></div></section>
+    <section class="filter-section"><div class="filter-section-toggle"><input class="filter-enable" id="use-description" name="use_description" type="checkbox" {% if use_description %}checked{% endif %}><label for="use-description">فیلتر شرح</label></div><div class="field"><input id="description-filter" name="description_filter" placeholder="رویداد یا شرح لاگ" value="{{ description_filter or '' }}"></div></section>
+    <section class="filter-section amount-filter-section"><div class="filter-section-toggle"><span>فیلتر نتیجه لاگ</span></div><div class="filter-checks" aria-label="نوع مبلغ"><label class="filter-check"><input class="filter-enable" name="success" type="checkbox" {% if success_filter %}checked{% endif %}> موفق</label><label class="filter-check"><input class="filter-enable" name="failure" type="checkbox" {% if failure_filter %}checked{% endif %}> ناموفق</label></div></section>
+  </div>
+  <div class="admin-filter-actions"><button class="btn">اعمال فیلتر</button><button class="btn btn-secondary" type="button" onclick="dailybookPrint('{{ print_paper_size }}')">چاپ / PDF</button><a class="btn btn-secondary" href="{{ url_for('admin.export_logs_xlsx', advanced_filter=('on' if advanced_filter else None), use_date=('on' if use_date else None), use_time=('on' if use_time else None), use_user=('on' if use_user else None), use_description=('on' if use_description else None), start=(start if advanced_filter else None), end=(end if advanced_filter else None), time_filter=(time_filter if advanced_filter else None), user_filter=(user_filter if advanced_filter else None), description_filter=(description_filter if advanced_filter else None), success=('on' if success_filter else None), failure=('on' if failure_filter else None)) }}">Excel</a></div>
+</form></section>
+<section class="card admin-card print-document"><div class="card-title-row"><div><h2>نتیجه لاگ‌ها</h2><p>رویدادهای سیستم با فیلترهای انتخاب‌شده نمایش داده می‌شوند.</p></div><div class="admin-filter-actions"><button class="btn danger-btn" id="clear-logs-open" type="button">پاک‌سازی لاگ‌ها</button></div></div><div class="table-wrap"><table class="table logs-table"><thead><tr><th>زمان</th><th>رویداد</th><th>کاربر</th><th>IP سیستم</th><th>مورد مرتبط</th><th>نتیجه</th><th>جزئیات</th></tr></thead><tbody>{% for log in logs %}<tr><td data-persian-number>{{ gregorian_datetime_to_jalali(log.created_at) }}</td><td>{{ event_label_fa(log.event_type) }}</td><td>{{ log.actor_name_snapshot or '' }}</td><td dir="ltr">{{ log.client_ip or '' }}</td><td data-persian-number>{{ related_record_fa(log) }}</td><td>{{ 'موفق' if log.success else 'ناموفق' }}</td><td class="audit-details" data-persian-number>{{ audit_details_fa(log) }}</td></tr>{% else %}<tr><td colspan="7" class="empty-state">لاگی مطابق فیلتر انتخاب‌شده وجود ندارد.</td></tr>{% endfor %}</tbody></table></div></section>
+</section>
+<dialog id="report-jalali-picker" class="report-jalali-picker"><h2>انتخاب تاریخ شمسی</h2><div class="date-selects"><select id="report-picker-year" aria-label="سال"></select><select id="report-picker-month" aria-label="ماه"></select><select id="report-picker-day" aria-label="روز"></select></div><div class="actions"><button class="btn" id="report-picker-apply" type="button">انتخاب</button><button class="btn btn-secondary" id="report-picker-cancel" type="button">انصراف</button></div></dialog>
+<dialog id="clear-logs-dialog" class="clear-logs-dialog" aria-labelledby="clear-logs-title">
+  <form method="post" action="{{ url_for('admin.clear_logs') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h2 id="clear-logs-title">تأیید پاک‌سازی لاگ‌ها</h2>
+    <p>برای پاک‌کردن لاگ‌های سرور، رمز مدیر را وارد کنید.</p>
+    <label for="clear-logs-password">رمز مدیر</label>
+    <input id="clear-logs-password" name="admin_password" type="password" required autocomplete="current-password">
+    <div class="actions">
+      <button class="btn danger-btn" type="submit">تأیید پاک‌سازی</button>
+      <button class="btn btn-secondary" id="clear-logs-cancel" type="button">انصراف</button>
+    </div>
+  </form>
+</dialog>
+<script>
+(function(){
+  var dialog=document.getElementById('clear-logs-dialog');
+  var open=document.getElementById('clear-logs-open');
+  var cancel=document.getElementById('clear-logs-cancel');
+  var password=document.getElementById('clear-logs-password');
+  if(open) open.addEventListener('click',function(){
+    password.value='';
+    dialog.showModal();
+    setTimeout(function(){password.focus();},20);
+  });
+  if(cancel) cancel.addEventListener('click',function(){dialog.close();});
+})();
+</script>{% if log_error %}<div class="modal-backdrop report-error-backdrop" id="report-error-modal"><div class="report-error-modal" role="alertdialog" aria-modal="true" aria-labelledby="report-error-title"><h2 id="report-error-title">خطا در بازه زمانی</h2><p>{{ log_error }}</p><button class="btn" id="report-error-confirm" type="button">اوکی</button></div></div>{% endif %}
+<script>
+function dailybookPrint(paper){document.documentElement.dataset.printMode=paper+'-{{ print_orientation }}';window.print();}
+(function(){
+  var form=document.querySelector('.report-filter-form'), start=document.getElementById('start'), end=document.getElementById('end'), dialog=document.getElementById('report-jalali-picker'), year=document.getElementById('report-picker-year'), month=document.getElementById('report-picker-month'), day=document.getElementById('report-picker-day'), target=null, fa='۰۱۲۳۴۵۶۷۸۹', en='0123456789';
+  function english(value){return String(value||'').replace(/[۰-۹]/g,function(n){return en[fa.indexOf(n)]});}
+  function persian(value){return String(value).replace(/[0-9]/g,function(n){return fa[n]});}
+  function showError(message){var old=document.getElementById('report-client-error');if(old)old.remove();var backdrop=document.createElement('div');backdrop.id='report-client-error';backdrop.className='modal-backdrop report-error-backdrop';backdrop.innerHTML='<div class="report-error-modal" role="alertdialog" aria-modal="true" aria-labelledby="report-client-error-title"><h2 id="report-client-error-title">خطا در بازه زمانی</h2><p></p><button class="btn" type="button">اوکی</button></div>';backdrop.querySelector('p').textContent=message;document.body.appendChild(backdrop);var button=backdrop.querySelector('button');button.focus();button.addEventListener('click',function(){backdrop.remove();(start||{}).focus();});}
+  function openPicker(input){target=input;var parts=english(input.value).split('/'),base=parseInt(parts[0]||'1405',10)||1405;year.innerHTML='';month.innerHTML='';day.innerHTML='';for(var y=base-5;y<=base+5;y++){var option=document.createElement('option');option.value=y;option.textContent=persian(y);year.appendChild(option);}for(var m=1;m<=12;m++){var monthOption=document.createElement('option');monthOption.value=m;monthOption.textContent=persian(m);month.appendChild(monthOption);}for(var d=1;d<=31;d++){var dayOption=document.createElement('option');dayOption.value=d;dayOption.textContent=persian(d);day.appendChild(dayOption);}year.value=base;month.value=parseInt(parts[1]||'1',10);day.value=parseInt(parts[2]||'1',10);dialog.showModal();}
+  document.getElementById('start-calendar-open').addEventListener('click',function(){openPicker(start);});document.getElementById('end-calendar-open').addEventListener('click',function(){openPicker(end);});document.getElementById('report-picker-apply').addEventListener('click',function(){target.value=persian([year.value,String(month.value).padStart(2,'0'),String(day.value).padStart(2,'0')].join('/'));dialog.close();target.focus();});document.getElementById('report-picker-cancel').addEventListener('click',function(){dialog.close();});
+  function dateParts(value){var parts=english(value).replace(/-/g,'/').split('/');if(parts.length!==3)return null;var result=parts.map(function(part){return parseInt(part,10);});return result.some(function(part){return isNaN(part);})?null:result;} function isAfter(left,right){for(var i=0;i<3;i++){if(left[i]!==right[i])return left[i]>right[i];}return false;} if(form){form.addEventListener('submit',function(event){var dateToggle=document.getElementById('use-date');var a=dateParts(start.value),b=dateParts(end.value);if((!dateToggle||dateToggle.checked)&&a&&b&&isAfter(a,b)){event.preventDefault();showError('تاریخ شروع نمی‌تواند بعد از تاریخ پایان باشد.');}});}
+  var serverError=document.getElementById('report-error-confirm');if(serverError){serverError.focus();serverError.addEventListener('click',function(){document.getElementById('report-error-modal').remove();});}
+})();
+</script><script>
+(function(){
+  var master=document.getElementById("advanced-filter"),panel=document.getElementById("advanced-filter-panel");
+  if(!master||!panel)return;
+  function syncSection(section){
+    if(section.classList.contains("amount-filter-section")){
+      section.classList.toggle("is-disabled",!master.checked);
+      section.querySelectorAll("input,select,button").forEach(function(control){control.disabled=!master.checked;});
+      return;
+    }
+    var enable=section.querySelector(".filter-enable");
+    var disabled=!master.checked || (enable && !enable.checked);
+    section.classList.toggle("is-disabled",disabled);
+    section.querySelectorAll("input,select,button").forEach(function(control){control.disabled=control===enable ? !master.checked : disabled;});
+  }
+  function syncAll(){panel.classList.toggle("is-disabled",!master.checked);panel.querySelectorAll(".filter-section").forEach(syncSection);}
+  master.addEventListener("change",syncAll);
+  panel.querySelectorAll(".filter-enable").forEach(function(control){control.addEventListener("change",syncAll);});
+  syncAll();
+})();
+</script>
+{% if log_error %}<div class="card admin-card"><p class="empty-state">{{ log_error }}</p></div>{% endif %}{% endblock %}

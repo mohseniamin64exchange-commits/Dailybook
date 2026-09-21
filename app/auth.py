@@ -6,9 +6,10 @@ application is being built.
 """
 
 from datetime import datetime, timezone
+from pathlib import Path
 from functools import wraps
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, session, url_for
 from urllib.parse import urlsplit
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_wtf import FlaskForm
@@ -21,6 +22,7 @@ from .extensions import db
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 MAX_FAILED_LOGINS = 5
+ADMIN_RECOVERY_FILE = "admin-password-recovery.ready"
 
 
 class AdminSetupForm(FlaskForm):
@@ -40,6 +42,17 @@ class LoginForm(FlaskForm):
     password = PasswordField("رمز عبور", validators=[DataRequired()])
     submit = SubmitField("ورود")
 
+
+def _admin_recovery_path():
+    return Path(current_app.config["DATA_DIR"]) / ADMIN_RECOVERY_FILE
+
+
+def _is_local_request():
+    return (request.remote_addr or "").split("%", 1)[0] in {"127.0.0.1", "::1"}
+
+
+def _admin_recovery_available():
+    return _is_local_request() and _admin_recovery_path().is_file()
 
 def _models():
     from .models import AuditLog, User
@@ -77,7 +90,7 @@ def _audit(event_type, user=None, result="success", description="", error_messag
             "outcome": result,
             "description": description,
             "error_message": error_message,
-            "ip_address": request.remote_addr,
+            "client_ip": _client_ip(),
         }
         if columns:
             values = {key: value for key, value in values.items() if key in columns}
@@ -116,6 +129,11 @@ def _set_attr_if_present(obj, name, value):
     if hasattr(obj, name):
         setattr(obj, name, value)
 
+
+def _client_ip():
+    """Return the first client address seen by the local application."""
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    return (forwarded.split(",", 1)[0].strip() or request.remote_addr)
 
 def admin_required(view):
     @wraps(view)
@@ -195,8 +213,41 @@ def login():
             if not next_url or urlsplit(next_url).netloc:
                 next_url = url_for("entries.dashboard")
             return redirect(next_url)
-    return render_template("auth/login.html", form=form)
+    return render_template("auth/login.html", form=form, recovery_available=_admin_recovery_available())
 
+
+@auth_bp.route("/recover-admin", methods=["GET", "POST"])
+def recover_admin():
+    if not _admin_recovery_available():
+        abort(404)
+    User, _ = _models()
+    admins = User.query.filter(User.role.in_(["admin", "administrator", "ادمین"])).all()
+    if len(admins) != 1:
+        flash("بازیابی فقط برای یک ادمین اصلی فعال است.", "error")
+        return redirect(url_for("auth.login"))
+    if request.method == "POST":
+        password = str(request.form.get("password") or "")
+        confirmation = str(request.form.get("confirm_password") or "")
+        if len(password) < 8:
+            flash("رمز عبور باید حداقل ۸ نویسه باشد.", "error")
+        elif password != confirmation:
+            flash("تکرار رمز عبور یکسان نیست.", "error")
+        else:
+            user = admins[0]
+            _set_password(user, password)
+            _set_attr_if_present(user, "failed_login_count", 0)
+            _set_attr_if_present(user, "is_locked", False)
+            if str(getattr(user, "status", "")).lower() in {"locked", "قفل"}:
+                _set_attr_if_present(user, "status", "active")
+            db.session.commit()
+            _audit("admin_password_recovered", user, description="بازیابی رمز ادمین اصلی با فرمان محلی")
+            try:
+                _admin_recovery_path().unlink()
+            except OSError:
+                pass
+            flash("رمز ادمین اصلی با موفقیت تغییر کرد. اکنون وارد شوید.", "success")
+            return redirect(url_for("auth.login"))
+    return render_template("auth/recover_admin.html")
 
 @auth_bp.post("/logout")
 @login_required

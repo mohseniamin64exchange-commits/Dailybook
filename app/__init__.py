@@ -2,9 +2,11 @@ from pathlib import Path
 import secrets
 
 from flask import Flask, redirect, request, url_for
+from flask_login import current_user
 
 from config import Config
 from .extensions import csrf, db, login_manager
+from .utils import gregorian_datetime_to_jalali
 
 
 def create_app(config_object=Config):
@@ -31,6 +33,7 @@ def create_app(config_object=Config):
     csrf.init_app(app)
     login_manager.login_view = "auth.login"
     login_manager.login_message = "لطفاً ابتدا وارد شوید."
+    app.jinja_env.filters["jalali_datetime"] = gregorian_datetime_to_jalali
 
     from .models import User
 
@@ -53,8 +56,22 @@ def create_app(config_object=Config):
         # the compact no-sidebar shell. The server shortcut opens localhost.
         remote_addr = (request.remote_addr or "").split("%", 1)[0]
         is_server_console = remote_addr in {"127.0.0.1", "::1"}
-        return {"is_server_console": is_server_console}
+        logo_url = None
+        if is_server_console and getattr(current_user, "is_authenticated", False):
+            from .models import Setting
+            logo_setting = Setting.query.filter_by(key="app_logo_file").first()
+            if logo_setting and logo_setting.value:
+                logo_url = url_for("admin.app_logo")
+        return {"is_server_console": is_server_console, "app_logo_url": logo_url}
 
+    @app.after_request
+    def disable_local_preview_cache(response):
+        """Always serve fresh pages and assets from the localhost preview."""
+        if (request.remote_addr or "").split("%", 1)[0] in {"127.0.0.1", "::1"}:
+            response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
     @app.get("/")
     def index():
         if not User.query.first():
@@ -69,15 +86,10 @@ def create_app(config_object=Config):
                 connection.exec_driver_sql("PRAGMA busy_timeout=30000")
                 connection.exec_driver_sql("PRAGMA journal_mode=WAL")
 
-    @app.before_request
-    def daily_backup_check():
-        from datetime import datetime, timezone
-        from .services.backup import run_daily_auto_backup
-
-        today = datetime.now(timezone.utc).date().isoformat()
-        if app.extensions.get("dailybook_backup_checked") != today:
-            result = run_daily_auto_backup(app)
-            if result is not None:
-                app.extensions["dailybook_backup_checked"] = today
+    # Automatic backups are driven by the server process, not by browser requests.
+    # Tests do not start the background worker.
+    if not app.config.get("TESTING"):
+        from .services.backup import start_auto_backup_scheduler
+        start_auto_backup_scheduler(app)
 
     return app

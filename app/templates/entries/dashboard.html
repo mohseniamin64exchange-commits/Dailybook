@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
-{% block title %}ثبت روزانه{% endblock %}
+{% block title %}خانه | دفتر دیجیتال روزانه{% endblock %}
 {% block content %}
 <section class="card entry-card">
+<div class="card-title-row home-section-heading"><div><h2>ثبت روزانه</h2><p>اطلاعات امروز را با سرعت و دقت ثبت کنید.</p></div><span class="home-section-icon" aria-hidden="true">＋</span></div>
 <form method="post" action="{{ url_for('entries.edit', entry_id=edit_entry.id) if edit_entry else url_for('entries.dashboard') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="entry-form-grid">
     <div class="field entry-type-field"><label for="entry-type">نوع</label><select id="entry-type" name="entry_type" required><option value="expense" {% if edit_entry and edit_entry.entry_type=='expense' %}selected{% endif %}>هزینه</option><option value="income" {% if (edit_entry and edit_entry.entry_type=='income') or not edit_entry %}selected{% endif %}>درآمد</option></select></div>
     <div class="field entry-description-field"><label for="description">شرح</label><input id="description" name="description" maxlength="500" required placeholder="مثلاً فروش محصول، خرید مواد اولیه ..." value="{{ edit_entry.description if edit_entry else '' }}"></div>
-    <div class="field entry-amount-field"><label for="amount">مبلغ (تومان)</label><input id="amount" name="amount" data-money inputmode="numeric" required placeholder="۰" value="{{ format_amount(edit_entry.amount) if edit_entry else '' }}"></div>
-    <div class="field entry-date-field"><label for="entry-date">تاریخ</label><div class="date-input-wrap"><input id="entry-date" name="entry_date" inputmode="numeric" required value="{{ gregorian_to_jalali(edit_entry.entry_date) if edit_entry else today_jalali }}"><button class="calendar-button" id="calendar-open" type="button" aria-label="باز کردن تقویم شمسی">▣</button></div></div>
+    <div class="field entry-amount-field"><label for="amount">مبلغ (ریال)</label><input id="amount" name="amount" data-money inputmode="numeric" required placeholder="۰" value="{{ format_amount(edit_entry.amount) if edit_entry else '' }}"></div>
+    <div class="field entry-date-field"><label for="entry-date">تاریخ</label><div class="date-input-wrap"><input id="entry-date" name="entry_date" inputmode="numeric" required value="{{ gregorian_to_jalali(edit_entry.entry_date) if edit_entry else today_jalali }}"><button class="calendar-button" id="calendar-open" type="button" aria-label="باز کردن تقویم شمسی">🗓</button></div></div>
   </div>
   <div class="actions entry-actions"><button class="btn entry-submit" type="submit"><span>{{ 'ذخیره ویرایش' if edit_entry else 'ثبت' }}</span><span class="submit-plus" aria-hidden="true">＋</span></button>{% if edit_entry %}<a class="btn btn-secondary" href="{{ url_for('entries.dashboard') }}">انصراف</a>{% endif %}</div>
 </form>
@@ -16,7 +17,7 @@
 
 <section class="card recent-card">
   <div class="section-heading"><h2><span class="recent-clock" aria-hidden="true">◷</span>{{ '۱۰ ثبت اخیر من' if current_user.role != 'admin' else '۱۰ ثبت اخیر' }}</h2></div>
-  <div class="table-wrap"><table class="table recent-table"><thead><tr><th>تاریخ</th><th>شرح</th><th>نوع</th><th>مبلغ (تومان)</th><th>عملیات</th></tr></thead><tbody>
+  <div class="table-wrap"><table class="table recent-table"><thead><tr><th>تاریخ</th><th>شرح</th><th>نوع</th><th>مبلغ (ریال)</th><th>عملیات</th></tr></thead><tbody>
   {% for entry in entries %}<tr><td>{{ gregorian_to_jalali(entry.entry_date) }}</td><td>{{ entry.description }}</td><td><span class="type-badge {{ 'income' if entry.entry_type=='income' else 'expense' }}">{{ 'درآمد' if entry.entry_type=='income' else 'هزینه' }}</span></td><td class="amount-cell {{ 'income' if entry.entry_type=='income' else 'expense' }}">{{ format_amount(entry.amount) }}</td><td><details class="row-actions"><summary aria-label="عملیات">•••</summary><div><a href="{{ url_for('entries.edit', entry_id=entry.id) }}">ویرایش</a><form method="post" action="{{ url_for('entries.delete', entry_id=entry.id) }}" onsubmit="return confirm('این ثبت حذف شود؟')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="link-button" type="submit">حذف</button></form></div></details></td></tr>
   {% else %}<tr><td colspan="5">هنوز ثبتی وجود ندارد.</td></tr>{% endfor %}</tbody></table></div>
 </section>

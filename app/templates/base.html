@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#071827">
   <script>(function(){try{var t=localStorage.getItem('dailybook-theme')||'dark';document.documentElement.dataset.theme=t}catch(e){}})();</script>
   <title>{% block title %}دفتر دیجیتال روزانه{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v=audit-print-fa-1">
   {% block head %}{% endblock %}
 </head>
 <body class="{% if current_user.is_authenticated and current_user.role == 'admin' and is_server_console %}has-admin-sidebar{% else %}user-shell{% endif %}">
@@ -18,6 +18,7 @@
 
   <div class="app-shell">
     <header class="site-header">
+      {% if current_user.is_authenticated and current_user.role == 'admin' and is_server_console %}<div class="header-corner-logo{% if app_logo_url %} has-custom-logo{% endif %}" aria-label="لوگوی دفتر مالی">{% if app_logo_url %}<img class="header-corner-logo-image" src="{{ app_logo_url }}" alt="لوگوی دفتر مالی">{% else %}<span class="header-corner-book" aria-hidden="true">▤</span><span class="header-corner-currency" aria-hidden="true">$</span>{% endif %}</div>{% endif %}
       <div class="header-inner">
         <div class="header-profile">
           {% if current_user.is_authenticated %}
@@ -32,7 +33,7 @@
           <span class="brand-copy"><strong>دفتر دیجیتال روزانه</strong><small>سادگی در ثبت، نظم در زندگی</small></span>
         </a>
 
-        <div class="header-date" aria-label="تاریخ امروز"><span data-today-jalali></span><span class="date-icon" aria-hidden="true">▣</span></div>
+        <div class="header-date" aria-label="تاریخ امروز"><span data-today-jalali></span><span class="date-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4M8 14h3M13 14h3M8 17h3M13 17h3"></path></svg></span></div>
       </div>
     </header>
 

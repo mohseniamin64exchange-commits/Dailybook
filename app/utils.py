@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import jdatetime
+
+TEHRAN_TIMEZONE = timezone(timedelta(hours=3, minutes=30))
 
 
 PERSIAN_DIGITS = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
@@ -54,6 +58,26 @@ def gregorian_to_jalali(value) -> str:
         from datetime import date as date_type
         date = date_type.fromisoformat(value[:10])
     return to_persian_digits(jdatetime.date.fromgregorian(date=date).strftime("%Y/%m/%d"))
+
+
+def gregorian_datetime_to_jalali(value, include_time=True) -> str:
+    """Format a stored Gregorian datetime as Jalali for every UI surface."""
+    if not value:
+        return ""
+    dt = value
+    if isinstance(value, str):
+        text = value.strip().replace("Z", "+00:00")
+        dt = datetime.fromisoformat(text)
+    # Stored timestamps are UTC. Normalize naive SQLite values as UTC,
+    # then display every timestamp consistently in Tehran local time.
+    if getattr(dt, "tzinfo", None) is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    dt = dt.astimezone(TEHRAN_TIMEZONE)
+    jdate = jdatetime.date.fromgregorian(date=dt.date()).strftime("%Y/%m/%d")
+    result = jdate
+    if include_time:
+        result += " — " + dt.strftime("%H:%M")
+    return to_persian_digits(result)
 
 
 def parse_amount(value: str) -> int:
