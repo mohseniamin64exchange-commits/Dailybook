@@ -17,12 +17,16 @@ $ServiceDir = Join-Path $InstallerRoot "service"
 $Venv = Join-Path $InstallerRoot ".venv-build"
 
 function Invoke-Checked([string]$File, [string[]]$Arguments) {
+    $PreviousErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
     $CommandOutput = @(& $File @Arguments 2>&1)
+    $ExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $PreviousErrorAction
     $CommandOutput | ForEach-Object { Write-Host $_ }
-    if ($LASTEXITCODE -ne 0) {
+    if ($ExitCode -ne 0) {
         $Details = (($CommandOutput | Select-Object -Last 20) -join ' | ').Replace("`r", ' ').Replace("`n", ' ')
         Write-Host "::error title=Build command failed::$Details"
-        throw "Command failed ($LASTEXITCODE): $File $($Arguments -join ' ')"
+        throw "Command failed ($ExitCode): $File $($Arguments -join ' ')"
     }
 }
 
@@ -143,3 +147,4 @@ if (-not $Candidates) {
 Invoke-Checked $Candidates[0] @(Join-Path $InstallerRoot "DailyBook.iss")
 Write-Host "Setup created in installer\output\DailyBook-Setup-x64.exe" -ForegroundColor Green
 }
+
