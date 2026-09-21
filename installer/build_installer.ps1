@@ -17,8 +17,11 @@ $ServiceDir = Join-Path $InstallerRoot "service"
 $Venv = Join-Path $InstallerRoot ".venv-build"
 
 function Invoke-Checked([string]$File, [string[]]$Arguments) {
-    & $File @Arguments
+    $CommandOutput = @(& $File @Arguments 2>&1)
+    $CommandOutput | ForEach-Object { Write-Host $_ }
     if ($LASTEXITCODE -ne 0) {
+        $Details = (($CommandOutput | Select-Object -Last 20) -join ' | ').Replace("`r", ' ').Replace("`n", ' ')
+        Write-Host "::error title=Build command failed::$Details"
         throw "Command failed ($LASTEXITCODE): $File $($Arguments -join ' ')"
     }
 }
