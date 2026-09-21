@@ -137,10 +137,12 @@ if (-not (Test-Path $WinSw)) {
 }
 if ($Stage -in @("All", "Installer")) {
 $Candidates = @(
-    $InnoSetup,
-    "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
-    "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
-) | Where-Object { $_ -and (Test-Path $_) }
+    @(
+        $InnoSetup,
+        "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+        "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+    ) | Where-Object { $_ -and (Test-Path $_) }
+)
 if (-not $Candidates) {
     throw "Inno Setup 6 was not found. Install it or pass -InnoSetup with ISCC.exe path."
 }
@@ -148,5 +150,6 @@ if (-not $Candidates) {
 Invoke-Checked $Candidates[0] @(Join-Path $InstallerRoot "DailyBook.iss")
 Write-Host "Setup created in installer\output\DailyBook-Setup-x64.exe" -ForegroundColor Green
 }
+
 
 
