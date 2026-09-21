@@ -1,6 +1,6 @@
 ; DailyBook standard Windows x64 installer
 #define AppName "DailyBook"
-#define AppVersion "1.0.0-rc5.4"
+#define AppVersion "1.0.1"
 #define AppPublisher "DailyBook"
 #define ServiceName "DailyBook"
 #define FirewallRule "DailyBook Server"
@@ -23,13 +23,14 @@ PrivilegesRequired=admin
 WizardStyle=modern
 SetupLogging=yes
 Uninstallable=yes
-UninstallDisplayIcon={app}\DailyBook.exe
+UninstallDisplayIcon={app}\DailyBook.ico
 CloseApplications=yes
 RestartApplications=no
 
 [Files]
 Source: "dist\server\DailyBookServer\*"; DestDir: "{app}\server"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "dist\launcher\DailyBook.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "assets\DailyBook.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "service\DailyBookService.exe"; DestDir: "{app}\service"; Flags: ignoreversion
 Source: "service\DailyBookService.xml"; DestDir: "{app}\service"; Flags: ignoreversion
 
@@ -42,9 +43,9 @@ Name: "{commonappdata}\DailyBook\logs"
 Name: "desktopicon"; Description: "ایجاد میانبر روی دسکتاپ"; GroupDescription: "میانبرها:"
 
 [Icons]
-Name: "{group}\DailyBook"; Filename: "{app}\DailyBook.exe"; IconFilename: "{app}\DailyBook.exe"
+Name: "{group}\DailyBook"; Filename: "{app}\DailyBook.exe"; IconFilename: "{app}\DailyBook.ico"
 Name: "{group}\حذف DailyBook"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\DailyBook"; Filename: "{app}\DailyBook.exe"; IconFilename: "{app}\DailyBook.exe"; Tasks: desktopicon
+Name: "{commondesktop}\DailyBook"; Filename: "{app}\DailyBook.exe"; IconFilename: "{app}\DailyBook.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\service\DailyBookService.exe"; Parameters: "install"; Flags: runhidden waituntilterminated; Check: not ServiceExists
@@ -110,5 +111,6 @@ begin
       DelTree(ExpandConstant('{commonappdata}\DailyBook'), True, True, True);
   end;
 end;
+
 
 
